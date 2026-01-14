@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int     @id @default(autoincrement())
+  nama_lengkap  String
+  username      String  @unique
+  nomor_telepon String
+  password      String
+  role          String  @default("user")
+  catatan       String? @db.Text
+
+  ambilBarang   AmbilBarang[] @relation("UserAmbil")
+  setorDiterima AmbilBarang[] @relation("AdminSetor")
+}
+
+model Barang {
+  id         Int       @id @default(autoincrement())
+  nama       String
+  keterangan String?   @db.Text
+  gambar     String?   @db.Text
+  deletedAt  DateTime? // Soft delete - null berarti aktif, ada nilai berarti sudah dihapus
+
+  stokHarian StokHarian[]
+}
+
+model StokHarian {
+  id          Int      @id @default(autoincrement())
+  barangId    Int
+  harga       Int
+  stok        Int
+  modal       Int
+  keterangan  String?  @db.Text
+  tanggalEdar DateTime
+
+  barang      Barang        @relation(fields: [barangId], references: [id])
+  detailSetor DetailSetor[]
+}
+
+model AmbilBarang {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  setorKepadaId Int?
+  status        String   @default("BELUM_SETOR")
+  keterangan    String?  @db.Text
+  tanggalAmbil  DateTime @default(now())
+
+  user        User  @relation("UserAmbil", fields: [userId], references: [id])
+  setorKepada User? @relation("AdminSetor", fields: [setorKepadaId], references: [id])
+
+  detailSetor DetailSetor[]
+}
+
+model DetailSetor {
+  id            Int       @id @default(autoincrement())
+  ambilBarangId Int
+  stokHarianId  Int
+  qty           Int
+  totalHarga    Int
+  tanggalSetor  DateTime?
+
+  ambilBarang AmbilBarang @relation(fields: [ambilBarangId], references: [id])
+  stokHarian  StokHarian  @relation(fields: [stokHarianId], references: [id])
+
+  detailKeuangan DetailKeuangan?
+}
+
+model Keuangan {
+  id         Int      @id @default(1)
+  totalSaldo Int
+  updatedAt  DateTime @updatedAt
+}
+
+model DetailKeuangan {
+  id            Int      @id @default(autoincrement())
+  detailSetorId Int?     @unique
+  title         String
+  tipe          String // PEMASUKAN / PENGELUARAN
+  nominal       Int
+  keterangan    String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  detailSetor DetailSetor? @relation(fields: [detailSetorId], references: [id])
+}
