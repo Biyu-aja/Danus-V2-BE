@@ -1,5 +1,6 @@
 import { prisma } from '../utils/transaction';
 import { TransactionClient } from '../utils/transaction';
+import { getStartOfTodayWIB, getTomorrowStartWIB } from '../utils/timezone';
 
 export class StokRepository {
     /**
@@ -22,13 +23,11 @@ export class StokRepository {
     }
 
     /**
-     * Get stok hari ini
+     * Get stok hari ini (menggunakan WIB timezone)
      */
     async findToday() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const today = getStartOfTodayWIB();
+        const tomorrow = getTomorrowStartWIB();
 
         return prisma.stokHarian.findMany({
             where: {
@@ -46,12 +45,11 @@ export class StokRepository {
 
     /**
      * Get stok hari ini dengan detail setor untuk perhitungan jumlah_ambil & jumlah_setor
+     * (menggunakan WIB timezone)
      */
     async findTodayWithDetails() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const today = getStartOfTodayWIB();
+        const tomorrow = getTomorrowStartWIB();
 
         return prisma.stokHarian.findMany({
             where: {

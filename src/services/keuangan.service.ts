@@ -2,6 +2,7 @@ import { keuanganRepository } from '../repositories/keuangan.repository';
 import { withTransaction } from '../utils/transaction';
 import { ValidationError } from '../utils/error';
 import { CreatePengeluaranRequest } from '../types';
+import { getWIBDate } from '../utils/timezone';
 
 export class KeuanganService {
     /**
@@ -116,10 +117,11 @@ export class KeuanganService {
     }
 
     /**
-     * Get laporan harian
+     * Get laporan harian (menggunakan WIB timezone)
      */
     async getLaporanHarian(tanggal?: string) {
-        const date = tanggal ? new Date(tanggal) : new Date();
+        // Jika tidak ada tanggal, gunakan hari ini di WIB
+        const date = tanggal ? new Date(tanggal) : getWIBDate();
 
         if (isNaN(date.getTime())) {
             throw new ValidationError('Format tanggal tidak valid');
@@ -129,7 +131,7 @@ export class KeuanganService {
     }
 
     /**
-     * Get laporan bulanan
+     * Get laporan bulanan (menggunakan WIB timezone)
      */
     async getLaporanBulanan(bulan?: string) {
         let year: number;
@@ -147,7 +149,8 @@ export class KeuanganService {
                 throw new ValidationError('Format bulan tidak valid');
             }
         } else {
-            const now = new Date();
+            // Gunakan WIB untuk default
+            const now = getWIBDate();
             year = now.getFullYear();
             month = now.getMonth() + 1;
         }

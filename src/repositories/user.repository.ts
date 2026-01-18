@@ -1,5 +1,6 @@
 import { prisma } from '../utils/transaction';
 import { TransactionClient } from '../utils/transaction';
+import { getStartOfTodayWIB, getTomorrowStartWIB } from '../utils/timezone';
 
 export class UserRepository {
     /**
@@ -82,12 +83,11 @@ export class UserRepository {
 
     /**
      * Get all users with today's ambil barang status
+     * (menggunakan WIB timezone)
      */
     async findAllWithTodayStatus() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const today = getStartOfTodayWIB();
+        const tomorrow = getTomorrowStartWIB();
 
         return prisma.user.findMany({
             // Removed role filter to include admins
