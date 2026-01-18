@@ -135,20 +135,31 @@ export class KeuanganRepository {
 
     /**
      * Get laporan harian
+     * Note: tanggal yang masuk sudah dalam WIB timezone
+     * Kita perlu convert ke UTC range untuk query database
      */
     async getLaporanHarian(tanggal: Date) {
-        const startOfDay = new Date(tanggal);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(tanggal);
-        endOfDay.setHours(23, 59, 59, 999);
+        // WIB adalah UTC+7, jadi 00:00 WIB = 17:00 UTC hari sebelumnya
+        // dan 23:59 WIB = 16:59 UTC hari yang sama
+
+        // Get year, month, day dari tanggal WIB
+        const year = tanggal.getFullYear();
+        const month = tanggal.getMonth();
+        const day = tanggal.getDate();
+
+        // Buat range dalam UTC yang sesuai dengan hari WIB
+        // 00:00:00 WIB = -7 hours dari local = 17:00:00 UTC hari sebelumnya
+        const startOfDayWIB = new Date(Date.UTC(year, month, day, -7, 0, 0, 0));
+        // 23:59:59 WIB = -7 hours = 16:59:59 UTC
+        const endOfDayWIB = new Date(Date.UTC(year, month, day, 16, 59, 59, 999));
 
         const [pemasukan, pengeluaran, transaksi] = await Promise.all([
             prisma.detailKeuangan.aggregate({
                 where: {
                     tipe: 'PEMASUKAN',
                     createdAt: {
-                        gte: startOfDay,
-                        lte: endOfDay,
+                        gte: startOfDayWIB,
+                        lte: endOfDayWIB,
                     },
                 },
                 _sum: { nominal: true },
@@ -158,8 +169,8 @@ export class KeuanganRepository {
                 where: {
                     tipe: 'PENGELUARAN',
                     createdAt: {
-                        gte: startOfDay,
-                        lte: endOfDay,
+                        gte: startOfDayWIB,
+                        lte: endOfDayWIB,
                     },
                 },
                 _sum: { nominal: true },
@@ -168,8 +179,8 @@ export class KeuanganRepository {
             prisma.detailKeuangan.findMany({
                 where: {
                     createdAt: {
-                        gte: startOfDay,
-                        lte: endOfDay,
+                        gte: startOfDayWIB,
+                        lte: endOfDayWIB,
                     },
                 },
                 orderBy: { createdAt: 'desc' },
@@ -177,7 +188,7 @@ export class KeuanganRepository {
         ]);
 
         return {
-            tanggal: `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, '0')}-${String(tanggal.getDate()).padStart(2, '0')}`,
+            tanggal: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
             pemasukan: {
                 total: pemasukan._sum.nominal || 0,
                 count: pemasukan._count,
