@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllUsers, getUserById, getUsersWithTodayStatus, getUserMonthlyStats } from '../controllers/user.controller';
+import { getAllUsers, getUserById, getUsersWithTodayStatus, getUserMonthlyStats, updateUser } from '../controllers/user.controller';
 
 const router = Router();
 
@@ -26,5 +26,11 @@ router.get('/:id', getUserById);
  * @desc Get user monthly stats
  */
 router.get('/:id/stats', getUserMonthlyStats);
+
+/**
+ * @route PATCH /api/users/:id
+ * @desc Update user data (phone number and notes)
+ */
+router.patch('/:id', updateUser);
 
 export default router;

@@ -153,6 +153,27 @@ export class UserRepository {
 
         return stoks.map(s => s.tanggalEdar);
     }
+
+    /**
+     * Update user data (phone number and notes)
+     */
+    async updateUser(id: number, data: { nomor_telepon?: string; catatan?: string }) {
+        return prisma.user.update({
+            where: { id },
+            data: {
+                ...(data.nomor_telepon !== undefined && { nomor_telepon: data.nomor_telepon }),
+                ...(data.catatan !== undefined && { catatan: data.catatan }),
+            },
+            select: {
+                id: true,
+                nama_lengkap: true,
+                username: true,
+                nomor_telepon: true,
+                role: true,
+                catatan: true,
+            },
+        });
+    }
 }
 
 export const userRepository = new UserRepository();

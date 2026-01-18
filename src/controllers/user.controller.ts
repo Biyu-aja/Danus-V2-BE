@@ -43,3 +43,15 @@ export const getUserMonthlyStats = asyncHandler(async (req: Request, res: Respon
     const stats = await userService.getUserMonthlyStats(id, year, month);
     return successResponse(res, stats, 'Berhasil mendapatkan statistik user');
 });
+
+/**
+ * PATCH /api/users/:id
+ * Update user data (phone number and notes)
+ */
+export const updateUser = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const { nomor_telepon, catatan } = req.body;
+
+    const user = await userService.updateUser(id, { nomor_telepon, catatan });
+    return successResponse(res, user, 'Berhasil mengupdate data user');
+});

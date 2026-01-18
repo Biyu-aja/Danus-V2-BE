@@ -196,6 +196,20 @@ export class UserService {
             calendar
         };
     }
+
+    /**
+     * Update user data (phone number and notes)
+     */
+    async updateUser(id: number, data: { nomor_telepon?: string; catatan?: string }) {
+        // Check if user exists
+        const existingUser = await userRepository.findById(id);
+        if (!existingUser) {
+            throw new NotFoundError(`User dengan ID ${id} tidak ditemukan`);
+        }
+
+        // Update the user
+        return userRepository.updateUser(id, data);
+    }
 }
 
 export const userService = new UserService();
