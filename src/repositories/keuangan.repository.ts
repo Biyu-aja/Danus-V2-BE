@@ -177,7 +177,7 @@ export class KeuanganRepository {
         ]);
 
         return {
-            tanggal: tanggal.toISOString().split('T')[0],
+            tanggal: `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, '0')}-${String(tanggal.getDate()).padStart(2, '0')}`,
             pemasukan: {
                 total: pemasukan._sum.nominal || 0,
                 count: pemasukan._count,
