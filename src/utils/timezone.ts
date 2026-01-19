@@ -1,6 +1,11 @@
 /**
  * Timezone helper for WIB (UTC+7)
  * Server mungkin menggunakan UTC, jadi kita perlu adjust ke WIB
+ * 
+ * PENTING: Database menyimpan waktu dalam UTC.
+ * Saat query "hari ini" di WIB, kita perlu convert ke UTC range:
+ * - 00:00:00 WIB = 17:00:00 UTC hari sebelumnya
+ * - 23:59:59 WIB = 16:59:59 UTC hari yang sama
  */
 
 const WIB_OFFSET_HOURS = 7;
@@ -16,30 +21,45 @@ export const getWIBDate = (): Date => {
 };
 
 /**
- * Get start of today in WIB (00:00:00 WIB)
+ * Get start of today in WIB as UTC Date for database query
+ * 00:00:00 WIB = 17:00:00 UTC hari sebelumnya
  */
 export const getStartOfTodayWIB = (): Date => {
     const wibNow = getWIBDate();
-    wibNow.setHours(0, 0, 0, 0);
-    return wibNow;
+    const year = wibNow.getFullYear();
+    const month = wibNow.getMonth();
+    const day = wibNow.getDate();
+
+    // 00:00 WIB = -7 jam dari UTC = 17:00 UTC hari sebelumnya
+    return new Date(Date.UTC(year, month, day - 1, 17, 0, 0, 0));
 };
 
 /**
- * Get end of today in WIB (23:59:59 WIB)
+ * Get end of today in WIB as UTC Date for database query
+ * 23:59:59 WIB = 16:59:59 UTC hari yang sama
  */
 export const getEndOfTodayWIB = (): Date => {
     const wibNow = getWIBDate();
-    wibNow.setHours(23, 59, 59, 999);
-    return wibNow;
+    const year = wibNow.getFullYear();
+    const month = wibNow.getMonth();
+    const day = wibNow.getDate();
+
+    // 23:59:59 WIB = 16:59:59 UTC
+    return new Date(Date.UTC(year, month, day, 16, 59, 59, 999));
 };
 
 /**
- * Get tomorrow start in WIB (00:00:00 WIB)
+ * Get tomorrow start in WIB as UTC Date for database query
+ * 00:00:00 WIB tomorrow = 17:00:00 UTC today
  */
 export const getTomorrowStartWIB = (): Date => {
-    const today = getStartOfTodayWIB();
-    today.setDate(today.getDate() + 1);
-    return today;
+    const wibNow = getWIBDate();
+    const year = wibNow.getFullYear();
+    const month = wibNow.getMonth();
+    const day = wibNow.getDate();
+
+    // Tomorrow 00:00 WIB = today 17:00 UTC
+    return new Date(Date.UTC(year, month, day, 17, 0, 0, 0));
 };
 
 /**
@@ -52,3 +72,4 @@ export const formatDateWIB = (date: Date): string => {
     const day = String(wibDate.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 };
+
