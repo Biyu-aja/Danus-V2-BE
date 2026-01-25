@@ -22,6 +22,15 @@ export const getUsersWithTodayStatus = asyncHandler(async (req: Request, res: Re
 });
 
 /**
+ * GET /api/users/pending-deposits
+ * Get all users with pending deposits
+ */
+export const getUsersWithPendingDeposits = asyncHandler(async (req: Request, res: Response) => {
+    const users = await userService.getUsersWithPendingDeposits();
+    return successResponse(res, users, 'Berhasil mendapatkan data user yang belum setor');
+});
+
+/**
  * GET /api/users/:id
  * Get user by ID
  */

@@ -210,6 +210,65 @@ export class UserService {
         // Update the user
         return userRepository.updateUser(id, data);
     }
+
+    /**
+     * Get users with pending deposits
+     */
+    async getUsersWithPendingDeposits() {
+        const users = await userRepository.findUsersWithPendingDeposits();
+
+        return users.map(user => {
+            let totalAmbil = 0;
+            let totalSetor = 0; // Will be 0 for these specific items since we filtered by tanggalSetor: null
+            let totalHarusSetor = 0;
+
+            // Track barang
+            const barangMap = new Map<number, { barangId: number; nama: string; qty: number; totalHarga: number }>();
+
+            if (user.ambilBarang && user.ambilBarang.length > 0) {
+                for (const ambil of user.ambilBarang) {
+                    if (ambil.detailSetor) {
+                        for (const detail of ambil.detailSetor) {
+                            totalAmbil += detail.qty;
+                            totalHarusSetor += detail.totalHarga;
+
+                            // Track barang
+                            const barangId = detail.stokHarian?.barang?.id;
+                            const barangNama = detail.stokHarian?.barang?.nama;
+                            if (barangId && barangNama) {
+                                const existing = barangMap.get(barangId);
+                                if (existing) {
+                                    existing.qty += detail.qty;
+                                    existing.totalHarga += detail.totalHarga;
+                                } else {
+                                    barangMap.set(barangId, {
+                                        barangId,
+                                        nama: barangNama,
+                                        qty: detail.qty,
+                                        totalHarga: detail.totalHarga,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return {
+                id: user.id,
+                nama_lengkap: user.nama_lengkap,
+                username: user.username,
+                nomor_telepon: user.nomor_telepon,
+                catatan: user.catatan,
+                status: 'BELUM_SETOR', // By definition, since we only fetched pending items
+                totalAmbil,
+                totalSetor,
+                totalHarusSetor,
+                ambilBarangCount: user.ambilBarang?.length || 0,
+                barangList: Array.from(barangMap.values()),
+            };
+        });
+    }
 }
 
 export const userService = new UserService();

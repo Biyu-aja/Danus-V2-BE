@@ -174,6 +174,70 @@ export class UserRepository {
             },
         });
     }
+
+    /**
+     * Get users with pending deposits (across all time)
+     */
+    async findUsersWithPendingDeposits() {
+        return prisma.user.findMany({
+            where: {
+                ambilBarang: {
+                    some: {
+                        detailSetor: {
+                            some: {
+                                tanggalSetor: null
+                            }
+                        }
+                    }
+                }
+            },
+            select: {
+                id: true,
+                nama_lengkap: true,
+                username: true,
+                nomor_telepon: true,
+                role: true,
+                catatan: true,
+                ambilBarang: {
+                    where: {
+                        detailSetor: {
+                            some: {
+                                tanggalSetor: null
+                            }
+                        }
+                    },
+                    select: {
+                        id: true,
+                        status: true,
+                        tanggalAmbil: true,
+                        detailSetor: {
+                            where: {
+                                tanggalSetor: null
+                            },
+                            select: {
+                                qty: true,
+                                totalHarga: true,
+                                tanggalSetor: true,
+                                stokHarian: {
+                                    select: {
+                                        id: true,
+                                        barang: {
+                                            select: {
+                                                id: true,
+                                                nama: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    orderBy: { tanggalAmbil: 'asc' },
+                },
+            },
+            orderBy: { nama_lengkap: 'asc' },
+        });
+    }
 }
 
 export const userRepository = new UserRepository();
