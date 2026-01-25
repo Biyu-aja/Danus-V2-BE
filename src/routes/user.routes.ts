@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllUsers, getUserById, getUsersWithTodayStatus, getUserMonthlyStats, updateUser } from '../controllers/user.controller';
+import { getAllUsers, getUserById, getUsersWithTodayStatus, getUserMonthlyStats, updateUser, getUsersWithPendingDeposits } from '../controllers/user.controller';
 
 const router = Router();
 
@@ -14,6 +14,12 @@ router.get('/', getAllUsers);
  * @desc Get all users with today's ambil barang status
  */
 router.get('/status-hari-ini', getUsersWithTodayStatus);
+
+/**
+ * @route GET /api/users/pending-deposits
+ * @desc Get all users with pending deposits
+ */
+router.get('/pending-deposits', getUsersWithPendingDeposits);
 
 /**
  * @route GET /api/users/:id
