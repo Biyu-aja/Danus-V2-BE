@@ -36,6 +36,15 @@ export class ValidationError extends AppError {
 }
 
 /**
+ * Bad Request Error (400)
+ */
+export class BadRequestError extends AppError {
+    constructor(message: string = 'Bad request') {
+        super(message, 400);
+    }
+}
+
+/**
  * Conflict Error (409)
  */
 export class ConflictError extends AppError {

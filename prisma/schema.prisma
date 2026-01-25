@@ -18,6 +18,9 @@ model User {
 
   ambilBarang   AmbilBarang[] @relation("UserAmbil")
   setorDiterima AmbilBarang[] @relation("AdminSetor")
+
+  requests      RequestSetor[] @relation("UserRequest")
+  adminRequests RequestSetor[] @relation("AdminRequest")
 }
 
 model Barang {
@@ -68,7 +71,8 @@ model DetailSetor {
   ambilBarang AmbilBarang @relation(fields: [ambilBarangId], references: [id])
   stokHarian  StokHarian  @relation(fields: [stokHarianId], references: [id])
 
-  detailKeuangan DetailKeuangan?
+  detailKeuangan      DetailKeuangan?
+  detailRequestSetors DetailRequestSetor[]
 }
 
 model Keuangan {
@@ -87,4 +91,28 @@ model DetailKeuangan {
   createdAt     DateTime @default(now())
 
   detailSetor DetailSetor? @relation(fields: [detailSetorId], references: [id])
+}
+
+model RequestSetor {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  adminId   Int
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User @relation("UserRequest", fields: [userId], references: [id])
+  admin User @relation("AdminRequest", fields: [adminId], references: [id])
+
+  details DetailRequestSetor[]
+}
+
+model DetailRequestSetor {
+  id            Int @id @default(autoincrement())
+  requestId     Int
+  detailSetorId Int
+  qty           Int
+
+  request     RequestSetor @relation(fields: [requestId], references: [id])
+  detailSetor DetailSetor  @relation(fields: [detailSetorId], references: [id])
 }

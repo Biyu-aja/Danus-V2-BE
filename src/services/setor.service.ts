@@ -19,7 +19,7 @@ export class SetorService {
      * 5. Kurangi stok harian
      * 6. Jika semua detail sudah disetor → update status ambil barang
      */
-    async prosesSetor(data: ProsesSetorRequest) {
+    async prosesSetor(data: ProsesSetorRequest, externalTx?: any) {
         // Handle backward compatibility or new format
         const items = data.items || [];
         const adminId = data.adminId;
@@ -69,8 +69,7 @@ export class SetorService {
         // Ensure saldo record exists
         await keuanganRepository.initializeSaldo();
 
-        // Transaction
-        return withTransaction(async (tx) => {
+        const operations = async (tx: any) => {
             const results: {
                 detailSetorId: number;
                 barangNama: string;
@@ -165,7 +164,13 @@ export class SetorService {
                 saldoTerbaru: updatedSaldo.totalSaldo,
                 details: results,
             };
-        });
+        };
+
+        if (externalTx) {
+            return operations(externalTx);
+        } else {
+            return withTransaction(operations);
+        }
     }
 }
 
